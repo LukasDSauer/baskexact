@@ -5,15 +5,21 @@ ecd_calc <- function(design, p1, n, lambda, weight_mat, globalweight_fun = NULL,
 
   # Create matrix with all possible outcomes (without permutations)
   events <- arrangements::combinations(0:n, k = design@k, replace = TRUE)
-
-  # Remove outcomes when no significant results are possible
+  # Get critical values
   crit <- get_crit(design = design, n = n, lambda = lambda)
   crit_pool <- get_crit_pool(design = design, n = n, lambda = lambda,
-    weight_mat = weight_mat, globalweight_fun = globalweight_fun,
-    globalweight_params = globalweight_params)
-  sel_nosig <- apply(events, 1, function(x) all(x < crit_pool))
-  events_nosig <- events[sel_nosig, ]
-  events_sel <- events[!sel_nosig, ]
+                             weight_mat = weight_mat, globalweight_fun = globalweight_fun,
+                             globalweight_params = globalweight_params)
+  # Remove outcomes when no significant results are possible
+  if(!is.na(crit_pool)){
+    sel_nosig <- apply(events, 1, function(x) all(x < crit_pool))
+    events_nosig <- events[sel_nosig, ]
+    events_sel <- events[!sel_nosig, ]
+  } else {
+    sel_nosig <- numeric(0)
+    events_nosig <- events[sel_nosig, ] # i.e. an empty matrix with k columns
+    events_sel <- events
+  }
 
   # Remove outcomes where all results are significant and calculate the
   # probabilities later
